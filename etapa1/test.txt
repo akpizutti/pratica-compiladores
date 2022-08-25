@@ -1,0 +1,33 @@
+char
+int
+float
+if
+else
+while
+read
+print
+return
+
+<-
+<=
+>=
+==
+!=
+
+abc
+ab1c
+abc1
+1abc
+
+1 12
+
+1,2 1,,,2 1, 2 1.2
+
+'-' ''-' '-'' ''-'' ' -'
+
+"a" "abc" "abc " def" "abc" "def" "abc\" \"def" "\n"
+
+ghi # jkl ## mno
+
+abc \# def
+ghi #\ jkl
