@@ -118,10 +118,10 @@ void check_operands(AST* node)
 		case AST_ADD:
 		    if(!(is_number(node->son[0]) && is_number(node->son[1]))){
 				if(!(is_number(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for ADD\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for ADD on expression %s + %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_number(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for ADD\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for ADD on expression %s + %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
@@ -139,10 +139,10 @@ void check_operands(AST* node)
 		case AST_SUB:
 		    if(!(is_number(node->son[0]) && is_number(node->son[1]))){
 				if(!(is_number(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for SUB\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for SUB on expression %s - %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_number(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for SUB\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for SUB on expression %s - %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
@@ -160,10 +160,10 @@ void check_operands(AST* node)
 		case AST_MUL:
 		    if(!(is_number(node->son[0]) && is_number(node->son[1]))){
 				if(!(is_number(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for MUL\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for MUL on expression %s . %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_number(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for MUL\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for MUL on expression %s . %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
@@ -181,10 +181,10 @@ void check_operands(AST* node)
 		case AST_DIV:
 		    if(!(is_number(node->son[0]) && is_number(node->son[1]))){
 				if(!(is_number(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for DIV\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for DIV on expression %s / %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_number(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for DIV\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for DIV on expression %s + %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
@@ -202,10 +202,10 @@ void check_operands(AST* node)
 		case AST_LES:
 		    if(!(is_number(node->son[0]) && is_number(node->son[1]))){
 				if(!(is_number(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for LES\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for LES on expression %s < %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_number(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for LES\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for LES on expression %s < %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
@@ -223,10 +223,10 @@ void check_operands(AST* node)
 		case AST_GRT:
 		    if(!(is_number(node->son[0]) && is_number(node->son[1]))){
 				if(!(is_number(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for GRT\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for GRT on expression %s > %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_number(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for GRT\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for GRT on expression %s > %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
@@ -244,10 +244,10 @@ void check_operands(AST* node)
 		case AST_LEQ:
 		    if(!(is_number(node->son[0]) && is_number(node->son[1]))){
 				if(!(is_number(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for LEQ\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for LEQ on expression %s <= %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_number(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for LEQ\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for LEQ on expression %s <= %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
@@ -265,10 +265,10 @@ void check_operands(AST* node)
 		case AST_GEQ:
 		    if(!(is_number(node->son[0]) && is_number(node->son[1]))){
 				if(!(is_number(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for GEQ\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for GEQ on expression %s >= %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_number(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for GEQ\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for GEQ on expression %s >= %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
@@ -286,10 +286,10 @@ void check_operands(AST* node)
 		case AST_EQ:
 		    if(!(is_number(node->son[0]) && is_number(node->son[1]))){
 				if(!(is_number(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for EQ\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for EQ on expression %s == %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_number(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for EQ\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for EQ on expression %s == %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
@@ -307,10 +307,10 @@ void check_operands(AST* node)
 		case AST_DIF:
 		    if(!(is_number(node->son[0]) && is_number(node->son[1]))){
 				if(!(is_number(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for DIF\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for DIF on expression %s != %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_number(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for DIF\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for DIF on expression %s != %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
@@ -328,10 +328,10 @@ void check_operands(AST* node)
 		case AST_AND:
 		    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
 				if(!(is_integer(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for AND\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for AND on expression %s & %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_integer(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for AND\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for AND on expression %s & %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
@@ -340,10 +340,10 @@ void check_operands(AST* node)
 		case AST_OR:
 		    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
 				if(!(is_integer(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for OR\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for OR on expression %s | %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_integer(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for OR\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for OR on expression %s | %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
@@ -352,10 +352,10 @@ void check_operands(AST* node)
 		case AST_NOT:
 		    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
 				if(!(is_integer(node->son[0]))){
-					fprintf(stderr,"Semantic error: Invalid left operand '%s' for NOT\n", node->son[0]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid left operand for NOT on expression %s ~ %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 				if(!(is_integer(node->son[1]))){
-					fprintf(stderr,"Semantic error: Invalid right operand '%s' for NOT\n", node->son[1]->symbol->text);
+					fprintf(stderr,"Semantic error: Invalid right operand for NOT on expression %s ~ %s \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 				}
 		        ++SemanticErrors;
 			}
