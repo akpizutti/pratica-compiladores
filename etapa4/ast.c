@@ -70,6 +70,7 @@ void astPrint(AST* node, int level){
 	case AST_KW_INT: fprintf(stderr, "AST_KW_INT"); break;
 	case AST_KW_FLOAT: fprintf(stderr, "AST_KW_FLOAT"); break;
 	case AST_KW_CHAR: fprintf(stderr, "AST_CHAR"); break;
+	case AST_READ_ARRAY: 	  		fprintf(stderr, "AST_READ_ARRAY"); break;
         default: fprintf(stderr, "UNKNOWN"); break;
     }
 

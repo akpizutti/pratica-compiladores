@@ -423,11 +423,11 @@ void check_operands(AST* node)
 		        fprintf(stderr,"Semantic error: The type of the operands doesn't match for AND! On expression '%s & %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 			    ++SemanticErrors;
 			    
-				if(!(is_integer(node->son[0]))){
-					fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
+				if(!(is_integer(node->son[0]) || is_bool(node->son[0]))){
+					fprintf(stderr,"  - The left operand '%s' is not an integer or an boolean!\n", node->son[0]->symbol->text);
 				}
-				if(!(is_integer(node->son[1]))){
-					fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
+				if(!(is_integer(node->son[1]) || is_bool(node->son[1]))){
+					fprintf(stderr,"  - The right operand '%s' is not an integer or an boolean!\n", node->son[1]->symbol->text);
 				}
 			}
 			break;
@@ -437,25 +437,25 @@ void check_operands(AST* node)
 		        fprintf(stderr,"Semantic error: The type of the operands doesn't match for OR! On expression '%s | %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 			    ++SemanticErrors;
 			    
-				if(!(is_integer(node->son[0]))){
-					fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
+				if(!(is_integer(node->son[0]) || is_bool(node->son[0]))){
+					fprintf(stderr,"  - The left operand '%s' is not an integer or an boolean!\n", node->son[0]->symbol->text);
 				}
-				if(!(is_integer(node->son[1]))){
-					fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
+				if(!(is_integer(node->son[1]) || is_bool(node->son[1]))){
+					fprintf(stderr,"  - The right operand '%s' is not an integer or an boolean!\n", node->son[1]->symbol->text);
 				}
 			}
 			break;
 
 		case AST_NOT:
 		    if(!((is_integer(node->son[0]) || is_bool(node->son[0])) && (is_integer(node->son[1]) || is_bool(node->son[1])))){
-		        fprintf(stderr,"Semantic error: The type of the operands doesn't match for AND! On expression '%s ~ %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		        fprintf(stderr,"Semantic error: The type of the operands doesn't match for NOT! On expression '%s ~ %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
 			    ++SemanticErrors;
 			    
-				if(!(is_integer(node->son[0]))){
-					fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
+				if(!(is_integer(node->son[0]) || is_bool(node->son[0]))){
+					fprintf(stderr,"  - The left operand '%s' is not an integer or an boolean!\n", node->son[0]->symbol->text);
 				}
-				if(!(is_integer(node->son[1]))){
-					fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
+				if(!(is_integer(node->son[1]) || is_bool(node->son[1]))){
+					fprintf(stderr,"  - The right operand '%s' is not an integer or an boolean!\n", node->son[1]->symbol->text);
 				}
 			}
 			break;
@@ -470,16 +470,27 @@ void check_operands(AST* node)
 void check_array(AST* node) //checa se o nodo é do tipo "acesso ao array" e se o seu índice é um integer. CONSERTAR!!!
 {
     int i;
-    if(!node || is_leaf(node))
+    if(!node || is_leaf(node) )
 	{
 	//fprintf(stderr, "Node NULL!\n");
 	return;
     }
     
-    if(!(node->type == AST_ARRAY_ACC && is_integer(node->son[0]))){
-        fprintf(stderr,"Semantic error: The type of the index doesn't match! On expression '%s[%s]' \n", node->symbol->text, node->son[0]->symbol->text);
-        fprintf(stderr,"Son: Type = %d, Symbol Type = %d, Datatype = %d, Text = %s\n", node->son[0]->type, node->son[0]->symbol->type, node->son[0]->symbol->datatype, node->son[0]->symbol->text);
-        ++SemanticErrors;
+    //fprintf(stderr,"Semantic error: The type of the index doesn't match! On expression '%s[%s]' \n", node->symbol->text, node->son[0]->symbol->text);
+    //fprintf(stderr,"Son: Type = %d, Symbol Type = %d, Datatype = %d, Text = %s\n", node->son[0]->type, node->son[0]->symbol->type, node->son[0]->symbol->datatype, node->son[0]->symbol->text);
+    if(node->type == AST_ARRAY_ACC || node->type == AST_READ_ARRAY){
+		if(!(is_integer(node->son[0]))){
+	//    	fprintf(stderr, "Deu erro!\n");
+			//fprintf(stderr, "Deu erro no %d \n", node->type);
+		    fprintf(stderr,"Semantic error: The type of the index doesn't match! On expression '%s[%s]' \n", node->symbol->text, node->son[0]->symbol->text);
+		    //fprintf(stderr,"Son: Type = %d, Symbol Type = %d, Datatype = %d, Text = %s\n", node->type, node->symbol->type, node->symbol->datatype, node->symbol->text);
+		    //fprintf(stderr,"Son: Type = %d, Symbol Type = %d, Datatype = %d, Text = %s\n", node->son[0]->type, node->son[0]->symbol->type, node->son[0]->symbol->datatype, node->son[0]->symbol->text);
+		    ++SemanticErrors;
+		}
+    }
+    
+    for(i = 0; i < MAXSONS; ++i){
+        check_array(node->son[i]);
     }
 }
 
@@ -508,6 +519,7 @@ void verifySemantic(AST* node)
     check_and_set_declarations(node);
     check_undeclared();
     check_operands(node);
+    fprintf(stderr, "Começando checagem de array!\n");
     check_array(node);
     //outras verificações
 
