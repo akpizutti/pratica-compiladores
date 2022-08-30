@@ -97,6 +97,7 @@ AST* ast;
 program: list			{
 						$$ = astCreate(AST_PROGRAM, 0, $1, 0, 0, 0);
 						astRoot = $$;
+						astPrint(astRoot, 0);
 						//check_and_set_declarations($$);
 						//check_undeclared();
 						//check_operands($$);
@@ -111,10 +112,10 @@ declaration: variable 		{$$ = astCreate(AST_DECLARATION, 0, $1, 0, 0, 0);}
 
 
 variable: type TK_IDENTIFIER '(' value ')' ';'				{$$ = astCreate(AST_VARIABLE, $2, $1, $4, 0, 0);}
-	| type TK_IDENTIFIER '[' array_size ']' array_val_list ';' 	{$$ = astCreate(AST_VARIABLE_ARRAY, $2, $1, $4, $6, 0);} // <---------------------------
+	| type TK_IDENTIFIER '[' array_size ']' array_val_list ';' 	{$$ = astCreate(AST_VARIABLE_ARRAY, $2, $1, $4, $6, 0);}
 	;
 
-array_size: LIT_INTEGER {$$ = astCreate(AST_SYMBOL, $1, 0, 0, 0, 0);}
+array_size: LIT_INTEGER                                 {$$ = astCreate(AST_SYMBOL, $1, 0, 0, 0, 0);}
 ;
 
 array_val_list: value array_val_list 					{$$ = astCreate(AST_ARRAY_VAL_LIST, 0, $1, $2, 0, 0);}
@@ -179,7 +180,7 @@ expression: expression '+' expression		{$$ = astCreate(AST_ADD, 0, $1, $3, 0, 0)
 	  | '(' expression ')'             	{$$ = astCreate(AST_NESTED_EXPR, 0,$2,0,0,0);}
 	  | TK_IDENTIFIER '(' argument_list ')' {$$ = astCreate(AST_FUNCTION_CALL, $1, $3, 0, 0, 0);}
 	  | TK_IDENTIFIER '[' expression ']' 	{$$ = astCreate(AST_ARRAY_ACC, $1, $3, 0, 0, 0);}
-      	  | TK_IDENTIFIER 			{$$ = astCreate(AST_SYMBOL, $1,0,0,0,0);}
+      	  | TK_IDENTIFIER 			{$$ = astCreate(AST_SYMBOL, $1,0,0,0,0);} //Novo tipo de nodo para variavel, que aponta para o valor dela
 	  | value				{$$ = $1;} //astCreate(AST_VALUE, 0,$1,0,0,0);
 	  ;
 argument_list: expression argument_list 	{$$ = astCreate(AST_ARGUMENT_LIST, 0, $1, $2, 0, 0);}
