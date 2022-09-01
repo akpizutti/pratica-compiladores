@@ -83,6 +83,15 @@ void check_undeclared()
     SemanticErrors += hash_check_undeclared();
 }
 
+int is_operation(AST* node)
+{
+	return ((node->type == AST_ADD) ||
+		(node->type == AST_SUB) ||
+		(node->type == AST_MUL) ||
+		(node->type == AST_DIV)) ;
+
+}
+
 int is_number(AST* son)
 {
        return
@@ -95,13 +104,21 @@ int is_number(AST* son)
         );
 }
 
-int is_integer(AST* son)
+int is_integer(AST* node)
 {
-       return ((son->type == AST_SYMBOL && son->symbol->type == SYMBOL_LIT_INT) ||
-		       (son->type == AST_SYMBOL && (son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_INT)) ||
-		       (son->type == AST_SYMBOL && (son->symbol->type == SYMBOL_PARAMETER && son->symbol->datatype == DATATYPE_INT)) ||
-               (son->type == AST_FUNCTION_CALL && son->symbol->datatype == DATATYPE_INT)) ||               
-               is_char(son);
+       
+       if (is_operation(node))
+	{
+		return(is_integer(node->son[0]) && is_integer(node->son[1]));
+	}
+	else 
+	{
+       	return ((node->type == AST_SYMBOL && node->symbol->type == SYMBOL_LIT_INT) ||
+		       (node->type == AST_SYMBOL && (node->symbol->type == SYMBOL_VARIABLE && node->symbol->datatype == DATATYPE_INT)) ||
+		       (node->type == AST_SYMBOL && (node->symbol->type == SYMBOL_PARAMETER && node->symbol->datatype == DATATYPE_INT)) ||
+               (node->type == AST_FUNCTION_CALL && node->symbol->datatype == DATATYPE_INT)) ||               
+               is_char(node);
+       }
 }
 
 int is_char(AST* son)
@@ -132,6 +149,34 @@ int is_bool(AST* son)
                 (son->type == AST_NOT));
 }
 
+
+
+/*
+int check_subtree_type(AST* node)
+{
+	if (is_operation(node))
+	{
+		if(check_subtree_type(node->son[0]) == check_subtree_type(node->son[1])) && (check_subtree_type(node->son[0]) != -1) && (check_subtree_type(node->son[1]) != -1)
+		{
+			if(is_integer(node->son[0]))
+				return INT;
+			if(is_float(node->son[0]))
+				return FLOAT;
+		}
+		else
+			return -1;
+			
+	}
+	else 
+	{
+		if(is_integer(node))
+			return INT;
+		if(is_float(node))
+			return FLOAT;
+	}
+
+}
+*/
 int is_leaf(AST* node)
 {
 	return (!node->son[0] && !node->son[1] && !node->son[2] && !node->son[3] && !node->son[4] ); 
