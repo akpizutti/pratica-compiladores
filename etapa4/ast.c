@@ -65,13 +65,16 @@ void astPrint(AST* node, int level){
 	case AST_RETURN: 	  	fprintf(stderr, "AST_RETURN"); break;
 	case AST_FUNCTION_CALL: 	fprintf(stderr, "AST_FUNCTION_CALL"); break;
 	case AST_ARRAY_ACC: 	  	fprintf(stderr, "AST_ARRAY_ACC"); break;
+	case AST_ASSIGNMENT_ARRAY: 	  	fprintf(stderr, "AST_ASSIGNMENT_ARRAY"); break;
+	case AST_VARIABLE_ARRAY: 	  	fprintf(stderr, "AST_VARIABLE_ARRAY"); break;
 	case AST_VALUE: 	  	fprintf(stderr, "AST_VALUE"); break;
 	case AST_ARGUMENT_LIST: 	fprintf(stderr, "AST_ARGUMENT_LIST"); break;
 	case AST_KW_INT: fprintf(stderr, "AST_KW_INT"); break;
 	case AST_KW_FLOAT: fprintf(stderr, "AST_KW_FLOAT"); break;
 	case AST_KW_CHAR: fprintf(stderr, "AST_CHAR"); break;
 	case AST_READ_ARRAY: 	  		fprintf(stderr, "AST_READ_ARRAY"); break;
-        default: fprintf(stderr, "UNKNOWN"); break;
+	case AST_NESTED_EXPR: 	  		fprintf(stderr, "AST_NESTED_EXPR"); break;
+        default: fprintf(stderr, "UNKNOWN = %d", node->type); break;
     }
 
     if(node->symbol){

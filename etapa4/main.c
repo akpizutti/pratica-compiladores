@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
             printf("sucesso\n");
             FILE* saida = fopen(argv[2],"w");
             descompila(saida,astRoot);
-			hashPrint();
+			//hashPrint();
 			verifySemantic(astRoot);
 			if(get_semantic_errors > 0)
 				exit(4);

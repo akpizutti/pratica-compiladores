@@ -83,12 +83,27 @@ void check_undeclared()
     SemanticErrors += hash_check_undeclared();
 }
 
-int is_operation(AST* node)
+int is_aritmetic_operation(AST* node)
 {
 	return ((node->type == AST_ADD) ||
-		(node->type == AST_SUB) ||
-		(node->type == AST_MUL) ||
-		(node->type == AST_DIV)) ;
+		    (node->type == AST_SUB) ||
+		    (node->type == AST_MUL) ||
+		    (node->type == AST_DIV)) ;
+
+}
+
+int is_boolean_operation(AST* node)
+{
+	return ((node->type == AST_LES) ||
+		    (node->type == AST_GRT) ||
+		    (node->type == AST_LEQ) ||
+		    (node->type == AST_GEQ) ||
+		    (node->type == AST_LEQ) ||
+		    (node->type == AST_EQ)  ||
+		    (node->type == AST_DIF) ||
+		    (node->type == AST_AND) ||
+		    (node->type == AST_OR)  ||
+		    (node->type == AST_NOT)) ;
 
 }
 
@@ -106,19 +121,56 @@ int is_number(AST* son)
 
 int is_integer(AST* node)
 {
-       
-       if (is_operation(node))
-	{
-		return(is_integer(node->son[0]) && is_integer(node->son[1]));
-	}
-	else 
-	{
-       	return ((node->type == AST_SYMBOL && node->symbol->type == SYMBOL_LIT_INT) ||
-		       (node->type == AST_SYMBOL && (node->symbol->type == SYMBOL_VARIABLE && node->symbol->datatype == DATATYPE_INT)) ||
-		       (node->type == AST_SYMBOL && (node->symbol->type == SYMBOL_PARAMETER && node->symbol->datatype == DATATYPE_INT)) ||
-               (node->type == AST_FUNCTION_CALL && node->symbol->datatype == DATATYPE_INT)) ||               
-               is_char(node);
-       }
+        return ((node->type == AST_SYMBOL && node->symbol->type == SYMBOL_LIT_INT) ||
+                (node->type == AST_SYMBOL && (node->symbol->type == SYMBOL_VARIABLE && node->symbol->datatype == DATATYPE_INT)) ||
+                (node->type == AST_SYMBOL && (node->symbol->type == SYMBOL_PARAMETER && node->symbol->datatype == DATATYPE_INT)) ||
+                (node->type == AST_FUNCTION_CALL && node->symbol->datatype == DATATYPE_INT) ||               
+                is_char(node));
+}
+
+int types_match_aritmetic(AST* node)
+{
+    int type_son0;
+    int type_son1;
+    
+    if(is_integer(node)){
+        return DATATYPE_INT;
+    }
+    else if(is_float(node)){
+        return DATATYPE_FLOAT;
+    }
+    else if(is_aritmetic_operation(node)){
+        type_son0 = types_match_aritmetic(node->son[0]);
+        type_son1 = types_match_aritmetic(node->son[1]);
+        
+        if(type_son0 == type_son1){
+            return type_son0;
+        }
+        else{
+            return 0;
+        }
+    }
+}
+
+int types_match_boolean(AST* node)
+{
+    int type_son0;
+    int type_son1;
+    
+    if(is_integer(node) || is_bool(node)){
+        return DATATYPE_INT;
+    }
+    else if(is_boolean_operation(node)){
+        type_son0 = types_match_boolean(node->son[0]);
+        type_son1 = types_match_boolean(node->son[1]);
+        
+        if(type_son0 == type_son1){
+            return type_son0;
+        }
+        else{
+            return 0;
+        }
+    }
 }
 
 int is_char(AST* son)
@@ -149,34 +201,6 @@ int is_bool(AST* son)
                 (son->type == AST_NOT));
 }
 
-
-
-/*
-int check_subtree_type(AST* node)
-{
-	if (is_operation(node))
-	{
-		if(check_subtree_type(node->son[0]) == check_subtree_type(node->son[1])) && (check_subtree_type(node->son[0]) != -1) && (check_subtree_type(node->son[1]) != -1)
-		{
-			if(is_integer(node->son[0]))
-				return INT;
-			if(is_float(node->son[0]))
-				return FLOAT;
-		}
-		else
-			return -1;
-			
-	}
-	else 
-	{
-		if(is_integer(node))
-			return INT;
-		if(is_float(node))
-			return FLOAT;
-	}
-
-}
-*/
 int is_leaf(AST* node)
 {
 	return (!node->son[0] && !node->son[1] && !node->son[2] && !node->son[3] && !node->son[4] ); 
@@ -186,6 +210,7 @@ void check_operands(AST* node)
 {
 
 	int i;
+	int son0, son1 = -1;
     if(!node || is_leaf(node))
 	{
 	//fprintf(stderr, "Node NULL!\n");
@@ -194,314 +219,132 @@ void check_operands(AST* node)
 
     switch (node->type){
 		case AST_ADD:
-			if(!((is_integer(node->son[0]) && is_integer(node->son[1])) || (is_float(node->son[0]) && is_float(node->son[1])))){
-				fprintf(stderr,"Semantic error: The type of the operands doesn't match for ADD! On expression '%s + %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_aritmetic(node->son[0]);
+		    son1 = types_match_aritmetic(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in ADD! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-			    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
-			        
-			        if(!(is_integer(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_integer(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
-				    }
-			    }
-			    
-			    if(!(is_float(node->son[0]) && is_float(node->son[1]))){
-				    
-				    if(!(is_float(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an float!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_float(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an float!\n", node->son[1]->symbol->text);
-				    }
-			    }
 			}
 			break;
 
 		case AST_SUB:
-		    if(!((is_integer(node->son[0]) && is_integer(node->son[1])) || (is_float(node->son[0]) && is_float(node->son[1])))){
-				fprintf(stderr,"Semantic error: The type of the operands doesn't match for SUB! On expression '%s - %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_aritmetic(node->son[0]);
+		    son1 = types_match_aritmetic(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in SUB! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-			    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
-			        
-			        if(!(is_integer(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_integer(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
-				    }
-			    }
-			    
-			    if(!(is_float(node->son[0]) && is_float(node->son[1]))){
-				    
-				    if(!(is_float(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an float!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_float(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an float!\n", node->son[1]->symbol->text);
-				    }
-			    }
 			}
 			break;
 
 		case AST_MUL:
-		    if(!((is_integer(node->son[0]) && is_integer(node->son[1])) || (is_float(node->son[0]) && is_float(node->son[1])))){
-				fprintf(stderr,"Semantic error: The type of the operands doesn't match for MUL! On expression '%s . %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_aritmetic(node->son[0]);
+		    son1 = types_match_aritmetic(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in MUL! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-			    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
-			        
-			        if(!(is_integer(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_integer(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
-				    }
-			    }
-			    
-			    if(!(is_float(node->son[0]) && is_float(node->son[1]))){
-				    
-				    if(!(is_float(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an float!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_float(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an float!\n", node->son[1]->symbol->text);
-				    }
-			    }
 			}
 			break;
 
 		case AST_DIV:
-		    if(!((is_integer(node->son[0]) && is_integer(node->son[1])) || (is_float(node->son[0]) && is_float(node->son[1])))){
-				fprintf(stderr,"Semantic error: The type of the operands doesn't match for DIV! On expression '%s / %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_aritmetic(node->son[0]);
+		    son1 = types_match_aritmetic(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in DIV! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-			    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
-			        
-			        if(!(is_integer(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_integer(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
-				    }
-			    }
-			    
-			    if(!(is_float(node->son[0]) && is_float(node->son[1]))){
-				    
-				    if(!(is_float(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an float!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_float(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an float!\n", node->son[1]->symbol->text);
-				    }
-			    }
 			}
 			break;
 
 		case AST_LES:
-		    if(!((is_integer(node->son[0]) && is_integer(node->son[1])) || (is_float(node->son[0]) && is_float(node->son[1])))){
-				fprintf(stderr,"Semantic error: The type of the operands doesn't match for LES! On expression '%s < %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_boolean(node->son[0]);
+		    son1 = types_match_boolean(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in LES! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-			    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
-			        
-			        if(!(is_integer(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_integer(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
-				    }
-			    }
-			    
-			    if(!(is_float(node->son[0]) && is_float(node->son[1]))){
-				    
-				    if(!(is_float(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an float!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_float(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an float!\n", node->son[1]->symbol->text);
-				    }
-			    }
 			}
 			break;
 
 		case AST_GRT:
-		    if(!((is_integer(node->son[0]) && is_integer(node->son[1])) || (is_float(node->son[0]) && is_float(node->son[1])))){
-				fprintf(stderr,"Semantic error: The type of the operands doesn't match for GRT! On expression '%s > %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_boolean(node->son[0]);
+		    son1 = types_match_boolean(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in GRT! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-			    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
-			        
-			        if(!(is_integer(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_integer(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
-				    }
-			    }
-			    
-			    if(!(is_float(node->son[0]) && is_float(node->son[1]))){
-				    
-				    if(!(is_float(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an float!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_float(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an float!\n", node->son[1]->symbol->text);
-				    }
-			    }
 			}
 			break;
 
 		case AST_LEQ:
-		    if(!((is_integer(node->son[0]) && is_integer(node->son[1])) || (is_float(node->son[0]) && is_float(node->son[1])))){
-				fprintf(stderr,"Semantic error: The type of the operands doesn't match for LEQ! On expression '%s <= %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_boolean(node->son[0]);
+		    son1 = types_match_boolean(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in LEQ! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-			    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
-			        
-			        if(!(is_integer(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_integer(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
-				    }
-			    }
-			    
-			    if(!(is_float(node->son[0]) && is_float(node->son[1]))){
-				    
-				    if(!(is_float(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an float!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_float(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an float!\n", node->son[1]->symbol->text);
-				    }
-			    }
 			}
 			break;
 
 		case AST_GEQ:
-		    if(!((is_integer(node->son[0]) && is_integer(node->son[1])) || (is_float(node->son[0]) && is_float(node->son[1])))){
-				fprintf(stderr,"Semantic error: The type of the operands doesn't match for GEQ! On expression '%s >= %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_boolean(node->son[0]);
+		    son1 = types_match_boolean(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in GEQ! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-			    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
-			        
-			        if(!(is_integer(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_integer(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
-				    }
-			    }
-			    
-			    if(!(is_float(node->son[0]) && is_float(node->son[1]))){
-				    
-				    if(!(is_float(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an float!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_float(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an float!\n", node->son[1]->symbol->text);
-				    }
-			    }
 			}
 			break;
 
 		case AST_EQ:
-		    if(!((is_integer(node->son[0]) && is_integer(node->son[1])) || (is_float(node->son[0]) && is_float(node->son[1])))){
-				fprintf(stderr,"Semantic error: The type of the operands doesn't match for EQ! On expression '%s == %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_boolean(node->son[0]);
+		    son1 = types_match_boolean(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in EQ! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-			    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
-			        
-			        if(!(is_integer(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_integer(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
-				    }
-			    }
-			    
-			    if(!(is_float(node->son[0]) && is_float(node->son[1]))){
-				    
-				    if(!(is_float(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an float!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_float(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an float!\n", node->son[1]->symbol->text);
-				    }
-			    }
 			}
 			break;
 
 		case AST_DIF:
-		    if(!((is_integer(node->son[0]) && is_integer(node->son[1])) || (is_float(node->son[0]) && is_float(node->son[1])))){
-				fprintf(stderr,"Semantic error: The type of the operands doesn't match for DIF! On expression '%s != %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_boolean(node->son[0]);
+		    son1 = types_match_boolean(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in DIF! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-			    if(!(is_integer(node->son[0]) && is_integer(node->son[1]))){
-			        
-			        if(!(is_integer(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an integer!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_integer(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an integer!\n", node->son[1]->symbol->text);
-				    }
-			    }
-			    
-			    if(!(is_float(node->son[0]) && is_float(node->son[1]))){
-				    
-				    if(!(is_float(node->son[0]))){
-					    fprintf(stderr,"  - The left operand '%s' is not an float!\n", node->son[0]->symbol->text);
-				    }
-				    if(!(is_float(node->son[1]))){
-					    fprintf(stderr,"  - The right operand '%s' is not an float!\n", node->son[1]->symbol->text);
-				    }
-			    }
 			}
 			break;
 
 		case AST_AND:
-		    if(!((is_integer(node->son[0]) || is_bool(node->son[0])) && (is_integer(node->son[1]) || is_bool(node->son[1])))){
-		        fprintf(stderr,"Semantic error: The type of the operands doesn't match for AND! On expression '%s & %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_boolean(node->son[0]);
+		    son1 = types_match_boolean(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in AND! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-				if(!(is_integer(node->son[0]) || is_bool(node->son[0]))){
-					fprintf(stderr,"  - The left operand '%s' is not an integer or an boolean!\n", node->son[0]->symbol->text);
-				}
-				if(!(is_integer(node->son[1]) || is_bool(node->son[1]))){
-					fprintf(stderr,"  - The right operand '%s' is not an integer or an boolean!\n", node->son[1]->symbol->text);
-				}
 			}
 			break;
 
 		case AST_OR:
-		    if(!((is_integer(node->son[0]) || is_bool(node->son[0])) && (is_integer(node->son[1]) || is_bool(node->son[1])))){
-		        fprintf(stderr,"Semantic error: The type of the operands doesn't match for OR! On expression '%s | %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_boolean(node->son[0]);
+		    son1 = types_match_boolean(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in OR! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-				if(!(is_integer(node->son[0]) || is_bool(node->son[0]))){
-					fprintf(stderr,"  - The left operand '%s' is not an integer or an boolean!\n", node->son[0]->symbol->text);
-				}
-				if(!(is_integer(node->son[1]) || is_bool(node->son[1]))){
-					fprintf(stderr,"  - The right operand '%s' is not an integer or an boolean!\n", node->son[1]->symbol->text);
-				}
 			}
 			break;
 
 		case AST_NOT:
-		    if(!((is_integer(node->son[0]) || is_bool(node->son[0])) && (is_integer(node->son[1]) || is_bool(node->son[1])))){
-		        fprintf(stderr,"Semantic error: The type of the operands doesn't match for NOT! On expression '%s ~ %s' \n", node->son[0]->symbol->text, node->son[1]->symbol->text);
+		    son0 = types_match_boolean(node->son[0]);
+		    son1 = types_match_boolean(node->son[1]);
+			if(son0 != son1){
+				fprintf(stderr,"Semantic error in NOT! Trying to operate a datatype '%d' with a datatype '%d'\n", son0, son1);
+				
 			    ++SemanticErrors;
-			    
-				if(!(is_integer(node->son[0]) || is_bool(node->son[0]))){
-					fprintf(stderr,"  - The left operand '%s' is not an integer or an boolean!\n", node->son[0]->symbol->text);
-				}
-				if(!(is_integer(node->son[1]) || is_bool(node->son[1]))){
-					fprintf(stderr,"  - The right operand '%s' is not an integer or an boolean!\n", node->son[1]->symbol->text);
-				}
 			}
 			break;
 	}
@@ -512,30 +355,82 @@ void check_operands(AST* node)
     }
 }
 
-void check_array(AST* node) //checa se o nodo é do tipo "acesso ao array" e se o seu índice é um integer. CONSERTAR!!!
+void check_array(AST* node)
 {
     int i;
     if(!node || is_leaf(node) )
 	{
-	//fprintf(stderr, "Node NULL!\n");
+	
 	return;
     }
     
-    //fprintf(stderr,"Semantic error: The type of the index doesn't match! On expression '%s[%s]' \n", node->symbol->text, node->son[0]->symbol->text);
-    //fprintf(stderr,"Son: Type = %d, Symbol Type = %d, Datatype = %d, Text = %s\n", node->son[0]->type, node->son[0]->symbol->type, node->son[0]->symbol->datatype, node->son[0]->symbol->text);
     if(node->type == AST_ARRAY_ACC || node->type == AST_READ_ARRAY){
 		if(!(is_integer(node->son[0]))){
-	//    	fprintf(stderr, "Deu erro!\n");
-			//fprintf(stderr, "Deu erro no %d \n", node->type);
 		    fprintf(stderr,"Semantic error: The type of the index doesn't match! On expression '%s[%s]' \n", node->symbol->text, node->son[0]->symbol->text);
-		    //fprintf(stderr,"Son: Type = %d, Symbol Type = %d, Datatype = %d, Text = %s\n", node->type, node->symbol->type, node->symbol->datatype, node->symbol->text);
-		    //fprintf(stderr,"Son: Type = %d, Symbol Type = %d, Datatype = %d, Text = %s\n", node->son[0]->type, node->son[0]->symbol->type, node->son[0]->symbol->datatype, node->son[0]->symbol->text);
 		    ++SemanticErrors;
 		}
     }
     
     for(i = 0; i < MAXSONS; ++i){
         check_array(node->son[i]);
+    }
+}
+
+void check_correct_use(AST* node)
+{
+    int i;
+    if(!node || is_leaf(node) )
+	{
+	
+	return;
+    }
+    
+    switch(node->type){
+    
+        case AST_ASSIGNMENT_ARRAY:
+            if(node->symbol->type != SYMBOL_ARRAY){
+                fprintf(stderr,"Semantic error: '%s' is not an array! \n", node->symbol->text);
+                ++SemanticErrors;
+            }
+            break;
+            
+        case AST_ASSIGNMENT:
+            if(node->symbol->type != SYMBOL_VARIABLE){
+                fprintf(stderr,"Semantic error: '%s' is not a variable! \n", node->symbol->text);
+                ++SemanticErrors;
+            }
+            break;
+        
+        case AST_FUNCTION_CALL:
+            if(node->symbol->type != SYMBOL_FUNCTION){
+                fprintf(stderr,"Semantic error: '%s' is not a function call! \n", node->symbol->text);
+                ++SemanticErrors;
+            }
+            break;
+        
+        case AST_ARRAY_ACC:
+            if(node->symbol->type != SYMBOL_ARRAY){
+                fprintf(stderr,"Semantic error: '%s' is not an array! \n", node->symbol->text);
+                ++SemanticErrors;
+            }
+            break;
+            
+        case AST_SYMBOL:
+            if(node->symbol->type != SYMBOL_VARIABLE &&
+               node->symbol->type != SYMBOL_LIT_INT  &&
+               node->symbol->type != SYMBOL_LIT_CHAR &&
+               node->symbol->type != SYMBOL_LIT_FLOAT &&
+               node->symbol->type != SYMBOL_IDENTIFIER &&
+               node->symbol->type != SYMBOL_PARAMETER ){
+                fprintf(stderr,"Semantic error: '%s' is not a variable! \n", node->symbol->text);
+                ++SemanticErrors;
+            }
+            break;
+        
+    }
+    
+    for(i = 0; i < MAXSONS; ++i){
+        check_correct_use(node->son[i]);
     }
 }
 
@@ -562,10 +457,12 @@ int convert_ast_type(AST* node)
 void verifySemantic(AST* node)
 {
     check_and_set_declarations(node);
+    hashPrint();
     check_undeclared();
     check_operands(node);
-    fprintf(stderr, "Começando checagem de array!\n");
+    //fprintf(stderr, "Começando checagem de array!\n");
     check_array(node);
+    check_correct_use(node);
     //outras verificações
 
     return ;
