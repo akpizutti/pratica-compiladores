@@ -1,0 +1,11 @@
+int i(1);
+int a ('A');
+
+int main ()
+{
+  	while(i>10)
+  	{ i <- 1; };
+  	print "A era=15\n";
+    print "Incrementado algumas vezes a fica " (2+i).i "\n";
+ 
+}
