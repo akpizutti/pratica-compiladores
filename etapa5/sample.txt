@@ -37,7 +37,7 @@ int main ()
 
   while (i<10)
     {
-    i <- incn(i 1);
+    i <- incn(i+1 1);
     a <- incn(a a);
     };
 

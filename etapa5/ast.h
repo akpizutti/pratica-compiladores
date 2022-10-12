@@ -78,6 +78,7 @@ typedef struct astNode{
 AST* astCreate(int type, HASH_NODE *symbol, AST* son0, AST* son1, AST* son2, AST* son3);
 
 void astPrint(AST* node, int level);
+AST* astFind(AST* node, char *text, int type);
 void descompila(FILE* saida, AST* node);
 
 void testabc();

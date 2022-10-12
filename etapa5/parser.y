@@ -103,7 +103,6 @@ program: list			{
 						//check_and_set_declarations($$);
 						//check_undeclared();
 						//check_operands($$);
-						tacPrintBack(generateCode($1));
 						} //saida = fopen("output.txt","w"); descompila(saida,$$); astPrint($$, 0);
        ;
 list: declaration list 		{$$ = astCreate(AST_LIST, 0, $1, $2, 0, 0);}

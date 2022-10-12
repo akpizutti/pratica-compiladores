@@ -112,7 +112,7 @@ void descompila(FILE* saida, AST* node)
                             descompila(saida, node->son[1]);
                              break;
 
-	case AST_MUL: 	  		descompila(saida, node->son[0]);
+	case AST_MUL: 	 		descompila(saida, node->son[0]);
                             fprintf(saida, " . ");
                             descompila(saida, node->son[1]);
                              break;
@@ -315,6 +315,28 @@ void descompila(FILE* saida, AST* node)
 //            descompila(saida, node->son[i]);
 //        }
 //    }
+}
+
+AST* astFind(AST* node, char *text, int type)
+{
+	if(!node){
+	//fprintf(stderr, "Node NULL!\n");
+	return 0;
+    }
+    
+    if(node->symbol){
+		if(strcmp(node->symbol->text,text) == 0 && node->type == type){
+			return node;
+			//fprintf(stderr,"achou\n");
+		}
+	}
+	
+	for(int i = 0; i < MAXSONS; ++i){
+		AST* found = astFind(node->son[i], text, type);
+        if(found)
+        	return found;
+    }
+    return 0;
 }
 
 

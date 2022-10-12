@@ -8,6 +8,9 @@
 #include "hash.h"
 #include "ast.h"
 #include "semantic.h"
+extern AST* astRoot;
+AST* astRoot2;
+#include "tac.h"
 
 
 
@@ -16,7 +19,6 @@ int yylex();
 int yyparse();
 extern char *yytext;
 extern FILE *yyin;
-extern AST* astRoot;
 
 
 int main(int argc, char** argv) {
@@ -31,10 +33,16 @@ int main(int argc, char** argv) {
             descompila(saida,astRoot);
 			//hashPrint();
 			verifySemantic(astRoot);
-			if(get_semantic_errors > 0)
+			if(get_semantic_errors() > 0){
+				printf("erro semantico\n");
 				exit(4);
-			else
+				}
+			else {
+				printf("eh pra printar a tac agora\n");
+				astRoot2 = astRoot;
+				tacPrintBack(generateCode(astRoot));
 				exit(0);
+				}
 		}
 		else{
 			exit(2);
