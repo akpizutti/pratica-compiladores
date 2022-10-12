@@ -61,6 +61,7 @@ TAC* tacCreate(int type, HASH_NODE* res, HASH_NODE* op1, HASH_NODE* op2);
 void tacPrint(TAC* tac);
 void tacPrintBack(TAC *tac);
 TAC* tacJoin(TAC* l1, TAC* l2);
+TAC* doublyLink(TAC* tac);
 
 TAC* generateCode(AST* node); 
 

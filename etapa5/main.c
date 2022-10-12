@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 			else {
 				printf("eh pra printar a tac agora\n");
 				astRoot2 = astRoot;
-				tacPrintBack(generateCode(astRoot));
+				tacPrintBack(doublyLink(generateCode(astRoot)));
 				hashPrint();
 				exit(0);
 				}

@@ -233,6 +233,20 @@ TAC* makeFunCall(TAC* code0, AST* node)
 
 }
 
+TAC* doublyLink(TAC* tac)
+{
+	TAC* point = tac;
+	
+	while(point->prev)
+	{
+		point->prev->next = point;
+		point = point->prev;
+	}
+	
+	return tac;
+}
+
+
 TAC* generateCode(AST* node)
 {
 	if(!node) return 0;
