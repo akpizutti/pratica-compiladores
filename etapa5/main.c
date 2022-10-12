@@ -31,8 +31,8 @@ int main(int argc, char** argv) {
             printf("sucesso\n");
             FILE* saida = fopen(argv[2],"w");
             descompila(saida,astRoot);
-			//hashPrint();
 			verifySemantic(astRoot);
+
 			if(get_semantic_errors() > 0){
 				printf("erro semantico\n");
 				exit(4);
@@ -41,6 +41,7 @@ int main(int argc, char** argv) {
 				printf("eh pra printar a tac agora\n");
 				astRoot2 = astRoot;
 				tacPrintBack(generateCode(astRoot));
+				hashPrint();
 				exit(0);
 				}
 		}

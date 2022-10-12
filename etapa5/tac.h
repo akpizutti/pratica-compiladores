@@ -41,7 +41,7 @@
 #define TAC_COPY 30
 #define TAC_SET_ARR 31
 
-
+extern AST* astRoot2;
 
 typedef struct tac_node 
 {
