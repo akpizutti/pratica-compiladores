@@ -27,8 +27,14 @@ int main(int argc, char** argv) {
 	else{
 		if(!yyparse()){
             printf("sucesso\n");
-            FILE* saida = fopen(argv[2],"w");
-            descompila(saida,astRoot);
+            if(argc >= 3)
+            {
+            	printf("tentando descompilar");
+            	FILE* saida = fopen(argv[2],"w");
+            	descompila(saida,astRoot);
+        	}else{
+        		printf("Arquivo de saída não especificado. Programa descompilado não foi gerado.\n");
+        		}
 			//hashPrint();
 			verifySemantic(astRoot);
 			if(get_semantic_errors > 0)
