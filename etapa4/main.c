@@ -20,9 +20,14 @@ extern AST* astRoot;
 
 
 int main(int argc, char** argv) {
+	if (argc < 2)
+	{
+		printf("Argumentos insuficientes\n");
+		exit(1);
+	}
 	if (0 == (yyin = fopen(argv[1],"r"))){
 		printf("Cannot open file %s... \n",argv[1]);
-		exit(1);
+		exit(2);
 	}
 	else{
 		if(!yyparse()){
@@ -32,18 +37,21 @@ int main(int argc, char** argv) {
             	printf("tentando descompilar");
             	FILE* saida = fopen(argv[2],"w");
             	descompila(saida,astRoot);
-        	}else{
+        	}
+        	else{
         		printf("Arquivo de saída não especificado. Programa descompilado não foi gerado.\n");
         		}
 			//hashPrint();
 			verifySemantic(astRoot);
-			if(get_semantic_errors > 0)
+			if(get_semantic_errors > 0){
+				printf("Erros semanticos encontrados.\n");
 				exit(4);
+				}
 			else
 				exit(0);
 		}
 		else{
-			exit(2);
+			exit(3);
 		}
 	}
 	return 0;
