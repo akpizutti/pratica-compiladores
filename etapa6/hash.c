@@ -28,6 +28,7 @@ int hashAddress(char *text){
 HASH_NODE *hashInsert(char *text, int type){
 	HASH_NODE *newnode;
 	int address = hashAddress(text);
+	static int serial = 0;
 
 	if((newnode = hashFind(text)) != 0){
 		return newnode;
@@ -35,6 +36,7 @@ HASH_NODE *hashInsert(char *text, int type){
 	newnode = (HASH_NODE*) calloc(1, sizeof(HASH_NODE));
 	newnode->type = type;
 	newnode->text = (char*) calloc(strlen(text)+1, sizeof(char));
+	newnode->id = serial++;
 	strcpy(newnode->text, text);
 	newnode->next = Table[address];
 	Table[address] = newnode;
@@ -81,13 +83,16 @@ int hash_check_undeclared(void)
 	return undeclaredCount;
 }
 
-HASH_NODE* makeTemp(void)
+HASH_NODE* makeTemp(int datatype)
 {
 	static int serial = 0;
 	char buffer[256] = "";
+	HASH_NODE* newtemp;
 	
 	sprintf(buffer, "temp%d", serial++);
-	return hashInsert(buffer,SYMBOL_VARIABLE);
+	newtemp = hashInsert(buffer,SYMBOL_VARIABLE);
+	newtemp->datatype = datatype;
+	return newtemp;
 }
 
 HASH_NODE* makeLabel(void)
@@ -99,20 +104,6 @@ HASH_NODE* makeLabel(void)
 	return hashInsert(buffer,SYMBOL_LABEL);
 }
 
-void printASM(FILE* fout){
-    int i;
-	HASH_NODE *node;
 
-    fprintf(fout,"## DATA SECTION\n");
-	for(i = 0; i<HASH_SIZE; ++i){
-		for(node = Table[i]; node; node = node->next){
-		    if(node->type == SYMBOL_VARIABLE){ //Fazer implementação para os outros símbolos
-			    fprintf(fout, "_%s:\t.long\t77\n", node->text);
-			}
-			else if(node->type == SYMBOL_LIT_INT || node->type == SYMBOL_LIT_CHAR){ //Fazer o mesmo para float, checando possível conflito entre vírgula e ponto no arquivo gerado (não conseguir compilar ele)
-			    fprintf(fout, "_%s:\t.long\t%s\n", node->text, node->text);
-			}
-		}
-	}
-	fprintf(fout,"\n");
-}
+
+

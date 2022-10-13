@@ -7,7 +7,11 @@
 #include <unistd.h>
 #include "hash.h"
 #include "ast.h"
+#include "asm.h"
 #include "semantic.h"
+extern AST* astRoot;
+AST* astRoot2;
+#include "tac.h"
 
 
 
@@ -16,10 +20,10 @@ int yylex();
 int yyparse();
 extern char *yytext;
 extern FILE *yyin;
-extern AST* astRoot;
 
 
 int main(int argc, char** argv) {
+    TAC* first;
 	if (0 == (yyin = fopen(argv[1],"r"))){
 		printf("Cannot open file %s... \n",argv[1]);
 		exit(1);
@@ -29,12 +33,27 @@ int main(int argc, char** argv) {
             printf("sucesso\n");
             FILE* saida = fopen(argv[2],"w");
             descompila(saida,astRoot);
-			//hashPrint();
 			verifySemantic(astRoot);
-			if(get_semantic_errors > 0)
+			
+
+			if(get_semantic_errors() > 0){
+				printf("erro semantico\n");
 				exit(4);
-			else
+				}
+			else {
+				printf("eh pra printar a tac agora\n");
+				astRoot2 = astRoot;
+                first = doublyLink(generateCode(astRoot));
+				tacPrintBack(first);
+				
+				while(first->prev){
+				    first = first->prev;
+				}
+				
+				hashPrint();
+				generateASM(first);
 				exit(0);
+				}
 		}
 		else{
 			exit(2);

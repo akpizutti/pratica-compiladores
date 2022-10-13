@@ -50,6 +50,8 @@ void tacPrint(TAC* tac)
 		
 		case TAC_ARG: fprintf(stderr,"TAC_ARG"); break;
 		case TAC_FUNCALL: fprintf(stderr,"TAC_FUNCALL"); break;
+		case TAC_SET_ARR: fprintf(stderr,"TAC_SET_ARR"); break;
+		case TAC_DECLARATION: fprintf(stderr,"TAC_DECLARATION"); break;
 
 		
 		default:
@@ -90,7 +92,7 @@ TAC* tacJoin(TAC* l1, TAC* l2)
 TAC* makebinop(int type, TAC* code0, TAC* code1)
 {
 	return tacJoin(tacJoin(code0,code1), 
-			tacCreate(type,makeTemp(),code0?code0->res:0,code1?code1->res:0) ); 
+			tacCreate(type,makeTemp(code0?code0->res->datatype:0),code0?code0->res:0,code1?code1->res:0) ); 
 }
 
 
@@ -180,11 +182,71 @@ TAC* makeWhile(TAC* code0, TAC* code1)
 	
 }
 
-TAC* makeFunCall(AST* node, TAC* code0)
+TAC* makeArrayDec(AST* node)
 {
+	TAC* out = 0;
+	AST* point = node->son[2];
+	int i = 0;
+	char index[256] = "";
+	
+		
+	while(point)
+	{	
+		sprintf(index,"%d",i);
+		//out = tacJoin(out,tacCreate(TAC_SET_ARR,node->symbol,point->son[0]->symbol,0));
+		out = tacJoin(out,tacCreate(TAC_SET_ARR,node->symbol,point->son[0]->symbol,hashInsert(index,SYMBOL_LIT_INT)));
+		point = point->son[1];
+		i++;
+	}
+	return out;
+}
+
+
+//função muito louca, tirou vários pontos da minha sanidade
+TAC* makeFunCall(TAC* code0, AST* node)
+{
+	TAC* out = 0;
+	AST* astFundec = astFind(astRoot2, node->symbol->text, AST_FUNCTION);
+	
+	if(astFundec == 0){
+		fprintf(stderr,"Declaracao da funcao nao encontrada\n");
+		return 0;
+		}
+	AST* astParameters = astFundec->son[1];
+	
+	
+	int i=0;
+	AST* point = node->son[0];
+	while(point)
+	{
+		
+		out = tacJoin(out, tacCreate(TAC_ARG, astParameters->symbol, code0->res,0));
+		astParameters = astParameters->son[1];
+		point = point->son[1];
+		i++;
+
+	}
+	
+	out = tacJoin(out,tacCreate(TAC_FUNCALL,makeTemp(astFundec->symbol->datatype),node->symbol,0));
+	return out;
+	
 	
 
 }
+
+TAC* doublyLink(TAC* tac)
+{
+	TAC* point = tac;
+	
+	while(point->prev)
+	{
+		point->prev->next = point;
+		point = point->prev;
+	}
+	
+	return tac;
+}
+
 
 TAC* generateCode(AST* node)
 {
@@ -245,8 +307,13 @@ TAC* generateCode(AST* node)
 			break;	
 		
 		case AST_VARIABLE:
-			result = tacJoin(code[1],tacCreate(TAC_COPY,node->symbol,code[1]?code[1]->res:0,0)); 
+			result = tacJoin(code[1],tacCreate(TAC_DECLARATION,node->symbol,code[1]?code[1]->res:0,0)); 
 			break;
+		case AST_VARIABLE_ARRAY:
+			result = makeArrayDec(node);
+			
+			break;
+			
 		case AST_ASSIGNMENT:
 			result = tacJoin(code[0],tacCreate(TAC_COPY,node->symbol,code[0]?code[0]->res:0,0)); 
 			break;
@@ -267,7 +334,7 @@ TAC* generateCode(AST* node)
 		case AST_IF_ELSE:
 			result = makeIfElse(code[0],code[1],code[2]);
 			break;
-		/*	só descomenta depois de fazer a makeWhile, senão dá segmentation fault */
+		/*	só descomenta depois de fazer a makeWhile, senão dá segfault */
 		case AST_WHILE:
 			result = makeWhile(code[0],code[1]);
 			break;
@@ -283,14 +350,16 @@ TAC* generateCode(AST* node)
 			break;
 		
 		case AST_ARRAY_ACC:
-			result = tacJoin(code[0],tacCreate(TAC_ARRAY_ACC,makeTemp(),node->symbol,code[0]->res));
+			result = tacJoin(code[0],tacCreate(TAC_ARRAY_ACC,makeTemp(node->symbol->datatype),node->symbol,code[0]->res));
 			break;
-		
+		/*
 		case AST_ARGUMENT:
-			result = tacCreate(TAC_ARG,code[0]->res,0,0);
+			result = tacJoin(code[0],tacCreate(TAC_ARG,code[0]->res,0,0));
 			break;
+		*/
 		case AST_FUNCTION_CALL:
-			result = tacJoin(code[0],tacCreate(TAC_FUNCALL,makeTemp(),0,0));
+			//result = tacJoin(code[0],tacCreate(TAC_FUNCALL,makeTemp(),0,0));
+			result = makeFunCall(code[0],node);
 			break; 
 			
 		case AST_RETURN: 
@@ -304,14 +373,7 @@ TAC* generateCode(AST* node)
 	}
 }
 
-TAC* tacReverse(TAC* tac){
 
-    TAC* t = tac;
-    for(t = tac; t->prev; t = t->prev){
-        t->prev->next = t;
-    }
-    return t;
-}
 
 
 

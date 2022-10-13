@@ -72,6 +72,10 @@ void check_and_set_declarations(AST* node)
 		
 	}
 		break;
+	
+	case AST_PRINT_ARGUMENT_STR:
+	    node->symbol->datatype = DATATYPE_STRING;
+	    break;
 	}
 
     for(i = 0; i < MAXSONS; ++i){
@@ -457,7 +461,7 @@ int convert_ast_type(AST* node)
 void verifySemantic(AST* node)
 {
     check_and_set_declarations(node);
-    hashPrint();
+    //hashPrint();
     check_undeclared();
     check_operands(node);
     //fprintf(stderr, "Começando checagem de array!\n");

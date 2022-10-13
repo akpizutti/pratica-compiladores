@@ -1,6 +1,7 @@
 #ifndef TAC_HEADER
 #define TAC_HEADER
 
+
 #include "hash.h"
 #include "ast.h"
 
@@ -38,8 +39,10 @@
 
 
 #define TAC_COPY 30
+#define TAC_SET_ARR 31
+#define TAC_DECLARATION 32
 
-
+extern AST* astRoot2;
 
 typedef struct tac_node 
 {
@@ -53,11 +56,13 @@ typedef struct tac_node
 
 } TAC; 
 
+//extern AST* astRoot;
+
 TAC* tacCreate(int type, HASH_NODE* res, HASH_NODE* op1, HASH_NODE* op2);
 void tacPrint(TAC* tac);
 void tacPrintBack(TAC *tac);
 TAC* tacJoin(TAC* l1, TAC* l2);
-TAC* tacReverse(TAC* tac);
+TAC* doublyLink(TAC* tac);
 
 TAC* generateCode(AST* node); 
 

@@ -1,11 +1,32 @@
-int i(1);
-int a ('A');
+int a (10);
+int b (3);
+int c (0);
 
 int main ()
 {
-  	while(i>10)
-  	{ i <- 1; };
-  	print "A era=15\n";
-    print "Incrementado algumas vezes a fica " (2+i).i "\n";
+    if(10 == 10){
+        print "Deu bom 1\n";
+    };
+    if(10 != 5){
+        print "Deu bom 2\n";    
+    };
+    if(10 >= 10){
+        print "Deu bom 3\n";    
+    };
+    if(10 <= 10){
+        print "Deu bom 4\n";    
+    };
+    if(10 > 5){
+        print "Deu bom 5\n";    
+    };
+    if(5 < 10){
+        print "Deu bom 6\n";    
+    };
+    if(10 & 10){
+        print "Deu bom 7\n";    
+    };
+    if(10 | 10){
+        print "Deu bom 8\n";    
+    };
  
 }

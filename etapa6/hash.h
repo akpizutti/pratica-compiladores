@@ -37,6 +37,7 @@ typedef struct hash_node{
     int datatype;
 	char *text;
 	struct hash_node *next;
+	int id;
 }	HASH_NODE;
 
 void hashInit(void);
@@ -51,13 +52,8 @@ void hashPrint(void);
 
 int hash_check_undeclared(void);
 
-HASH_NODE* makeTemp(void);
+HASH_NODE* makeTemp(int datatype);
 HASH_NODE* makeLabel(void);
-
-void printASM(FILE* fout);
-
-
-
 
 
 #endif

@@ -6,7 +6,6 @@ Akim Lee Pizutti - 00302937
     #include "ast.c"
 	#include "semantic.h"
 	#include "tac.h"
-	#include "asm.h"
     	int yyerror();
 	int getLineNumber();
 	int yylex();
@@ -101,14 +100,9 @@ program: list			{
 						$$ = astCreate(AST_PROGRAM, 0, $1, 0, 0, 0);
 						astRoot = $$;
 						astPrint(astRoot, 0);
-						TAC* code;
 						//check_and_set_declarations($$);
 						//check_undeclared();
 						//check_operands($$);
-						code = generateCode($1);
-						tacPrintBack(code);
-						code = tacReverse(code);
-						generateASM(code);
 						} //saida = fopen("output.txt","w"); descompila(saida,$$); astPrint($$, 0);
        ;
 list: declaration list 		{$$ = astCreate(AST_LIST, 0, $1, $2, 0, 0);}
