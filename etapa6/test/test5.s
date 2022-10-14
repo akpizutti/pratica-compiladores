@@ -6,10 +6,47 @@
 	.type	a, @object
 	.size	a, 4
 a:
-	.long	1076677837
-	.section	.rodata
-.LC0:
-	.string	"%f"
+	.long	2
+	.globl	b
+	.align 4
+	.type	b, @object
+	.size	b, 4
+b:
+	.long	2
+	.globl	c
+	.align 4
+	.type	c, @object
+	.size	c, 4
+c:
+	.long	7
+	.globl	d
+	.align 32
+	.type	d, @object
+	.size	d, 40
+d:
+	.long	0
+	.long	1
+	.long	2
+	.long	3
+	.long	4
+	.long	5
+	.long	6
+	.long	7
+	.long	8
+	.long	9
+	.globl	e
+	.align 8
+	.type	e, @object
+	.size	e, 12
+e:
+	.long	7
+	.long	21
+	.long	43
+	.globl	f
+	.type	f, @object
+	.size	f, 1
+f:
+	.byte	83
 	.text
 	.globl	main
 	.type	main, @function
@@ -21,12 +58,10 @@ main:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 
-	movss	a(%rip), %xmm0
-	cvtss2sd	%xmm0, %xmm0
-	
-	leaq	.LC0(%rip), %rdi
-	movl	$1, %eax
-	call	printf@PLT
+	movzbl	f(%rip), %eax
+	movsbl	%al, %eax
+	movl	%eax, %edi
+	call	putchar@PLT
 	
 	movl	$0, %eax
 	popq	%rbp

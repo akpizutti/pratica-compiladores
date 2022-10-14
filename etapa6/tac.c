@@ -52,6 +52,7 @@ void tacPrint(TAC* tac)
 		case TAC_FUNCALL: fprintf(stderr,"TAC_FUNCALL"); break;
 		case TAC_SET_ARR: fprintf(stderr,"TAC_SET_ARR"); break;
 		case TAC_DECLARATION: fprintf(stderr,"TAC_DECLARATION"); break;
+		case TAC_DECLARATION_ARR: fprintf(stderr,"TAC_DECLARATION_ARR"); break;
 
 		
 		default:
@@ -194,7 +195,7 @@ TAC* makeArrayDec(AST* node)
 	{	
 		sprintf(index,"%d",i);
 		//out = tacJoin(out,tacCreate(TAC_SET_ARR,node->symbol,point->son[0]->symbol,0));
-		out = tacCreate(TAC_DECLARATION_ARR, node->symbol,0,0);
+		//out = tacCreate(TAC_DECLARATION_ARR, node->symbol,0,0);
 		out = tacJoin(out,tacCreate(TAC_SET_ARR,node->symbol,point->son[0]->symbol,hashInsert(index,SYMBOL_LIT_INT)));
 		point = point->son[1];
 		i++;
@@ -310,6 +311,9 @@ TAC* generateCode(AST* node)
 		case AST_VARIABLE:
 			result = tacJoin(code[1],tacCreate(TAC_DECLARATION,node->symbol,code[1]?code[1]->res:0,0)); 
 			break;
+		/*case AST_PARAMETERS://Reconhecer as variaveis declaradas como argumento de função
+			result = tacJoin(code[1],tacCreate(TAC_DECLARATION,node->symbol,code[1]?code[1]->res:0,0)); 
+			break;*/
 		case AST_VARIABLE_ARRAY:
 			result = makeArrayDec(node);
 			

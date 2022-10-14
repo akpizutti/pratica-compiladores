@@ -1,6 +1,9 @@
 int a (10);
 int b (3);
 int c (0);
+int d[7] 0 1 2 3 4 5 19;
+int e[20];
+char f ('S');
 
 int main ()
 {
@@ -28,5 +31,19 @@ int main ()
     if(10 | 10){
         print "Deu bom 8\n";    
     };
+    
+    a <- 255;
+    d[1] <- 99;
+    
+    ##print d[6];
+    
+    c <- foo(10 3);
+    
+    print c;
+    print f;
  
+}
+
+int foo(int x int y){
+    return x + y;
 }

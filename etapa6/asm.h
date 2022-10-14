@@ -9,6 +9,7 @@ void makeBeginFun(FILE* fout, TAC* tac);
 void makeEndFun(FILE* fout, TAC* tac);
 void makePrint(FILE* fout, TAC* tac);
 void makeCopy(FILE* fout, TAC* tac);
+void makeArg(FILE* fout, TAC* tac);
 void makeAdd(FILE* fout, TAC* tac);
 void makeSub(FILE* fout, TAC* tac);
 void makeMul(FILE* fout, TAC* tac);
@@ -25,5 +26,7 @@ void makeJz(FILE* fout, TAC* tac);
 void makeJmp(FILE* fout, TAC* tac);
 void makeLab(FILE* fout, TAC* tac);
 void makeReturn(FILE* fout, TAC* tac);
+void makeArrayAcc(FILE* fout, TAC* tac);
+void makeFunctionCall(FILE* fout, TAC* tac);
 
 #endif

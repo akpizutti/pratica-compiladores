@@ -12,8 +12,16 @@ void dotFloat(char* float_num){
     }
 }
 
+void cleanArray(char* array, int size){
+    int i;
+    for(i = 0; i < size; i++){
+        array[i] = 0;
+    }
+}
+
 void printASM(FILE* fout, TAC* first){
     int i;
+    char array_name[256];
 	HASH_NODE *node;
 	TAC* tac = first;
 
@@ -22,7 +30,30 @@ void printASM(FILE* fout, TAC* first){
                         "\t.align\t4\n");
     for(; tac; tac = tac->next){
         if(tac->type == TAC_DECLARATION){
-            fprintf(fout, "_%s:\t.long\t%s\n", tac->res->text, tac->op1->text); //Dá pra fazer um IF e declarar certinho como .int, .float, .string ou .byte
+            switch(tac->res->datatype){
+                case DATATYPE_INT:  fprintf(fout, "_%s:\t.int\t%s\n", tac->res->text, tac->op1->text); break;
+                case DATATYPE_CHAR:  fprintf(fout, "_%s:\t.byte\t%d\n", tac->res->text, (int)tac->op1->text[1]); break;
+                case DATATYPE_FLOAT: dotFloat(tac->op1->text);
+                                     fprintf(fout, "_%s:\t.float\t%s\n", tac->res->text, tac->op1->text); break;
+                default: break;
+            }
+            
+        }
+        else if(tac->type == TAC_SET_ARR){
+            if(strcmp(tac->res->text, array_name) != 0){
+                strncpy(array_name, tac->res->text, strlen(tac->res->text));
+                fprintf(fout, "_%s:\t.long\t%s\n", tac->res->text, tac->op1->text);
+            }
+            else{
+                fprintf(fout, "\t.long\t%s\n", tac->op1->text);
+            }
+        }
+        else if(tac->type == TAC_ARG){
+            fprintf(fout, "_%s:\t.zero\t4\n", tac->res->text);
+        }
+        
+        if(tac->type != TAC_SET_ARR){
+            cleanArray(array_name, 256);
         }
     }
     
@@ -68,7 +99,6 @@ void generateASM(TAC *first){
     //EACH TAC
     for(tac = first; tac; tac = tac->next){
         switch(tac->type){
-		    //case TAC_SYMBOL: fprintf(stderr,"TAC_SYMBOL"); break;
 		    case TAC_ADD: makeAdd(fout, tac); break;
 		    case TAC_SUB: makeSub(fout, tac); break;
 		    case TAC_MUL: makeMul(fout, tac); break;
@@ -91,13 +121,18 @@ void generateASM(TAC *first){
 		    case TAC_BEGINFUN: makeBeginFun(fout, tac); break;
 		    case TAC_ENDFUN: makeEndFun(fout, tac); break;
 		    case TAC_PRINT: makePrint(fout, tac); break;
-		    //case TAC_ARRAY_ACC: fprintf(stderr,"TAC_ARRAY_ACC"); break;
+		    case TAC_ARRAY_ACC: makeArrayAcc(fout, tac); break;
 		    //case TAC_READ: fprintf(stderr,"TAC_READ"); break;
 		    //case TAC_READ_ARRAY: fprintf(stderr,"TAC_READ_ARRAY"); break;
 		    case TAC_RETURN: makeReturn(fout, tac); break;
 		    
-		    //case TAC_ARG: fprintf(stderr,"TAC_ARG"); break;
-		    //case TAC_FUNCALL: fprintf(stderr,"TAC_FUNCALL"); break;
+		    case TAC_ARG: makeArg(fout, tac); break;
+		    case TAC_FUNCALL: makeFunctionCall(fout, tac); break;
+		    
+		    //Usadas no data section
+    		//case TAC_SET_ARR: fprintf(stderr,"TAC_SET_ARR"); break;
+		    //case TAC_DECLARATION: fprintf(stderr,"TAC_DECLARATION"); break;
+		    //case TAC_DECLARATION_ARR: fprintf(stderr,"TAC_DECLARATION"); break;
 
 		    
 		    default: break;
@@ -138,7 +173,14 @@ void makePrint(FILE* fout, TAC* tac){
 	                                            "\tcall	printf@PLT\n"
                                                 "\n", tac->res->text);
 	                                            break;
-        default: fprintf(fout,"\tTYPE = %d; DATATYPE = %d; TEXT = %s\n\n", tac->res->type, tac->res->datatype, tac->res->text);break; //Consertar DATATYPE das temps
+	                                            
+	    case DATATYPE_CHAR:      fprintf(fout,  "\tmovzbl	_%s(%%rip), %%eax\n"
+	                                            "\tmovsbl	%%al, %%eax\n"
+	                                            "\tmovl	%%eax, %%edi\n"
+	                                            "\tcall	putchar@PLT\n"
+                                                "\n", tac->res->text);
+	                                            break;
+        default: fprintf(fout,"\t##TYPE = %d; DATATYPE = %d; TEXT = %s\n\n", tac->res->type, tac->res->datatype, tac->res->text);break; //Consertar DATATYPE das temps
     }
     
 }
@@ -161,9 +203,38 @@ void makeEndFun(FILE* fout, TAC* tac){
 
 void makeCopy(FILE* fout, TAC* tac){
     fprintf(fout,   "\t## TAC COPY\n");
-    fprintf(fout,       "\tmovl	_%s(%%rip), %%eax\n"
-	                    "\tmovl	%%eax, _%s(%%rip)\n"
-	                    "\n", tac->op1->text, tac->res->text);
+    if(tac->op2){
+        fprintf(fout,       "\tmovl	_%s(%%rip), %%eax\n"
+	                        "\tmovl	_%s(%%rip), %%edx\n"
+	                        "\tcltq\n"
+	                        "\tleaq	0(,%%rax,4), %%rcx\n"
+	                        "\tleaq	_%s(%%rip), %%rax\n"
+	                        "\tmovl	%%edx, (%%rcx,%%rax)\n"
+	                        "\n", tac->op2->text, tac->op1->text, tac->res->text);
+    }
+	else{
+	    fprintf(fout,       "\tmovl	_%s(%%rip), %%eax\n"
+	                        "\tmovl	%%eax, _%s(%%rip)\n"
+	                        "\n", tac->op1->text, tac->res->text);
+	}
+}
+
+void makeArg(FILE* fout, TAC* tac){
+    fprintf(fout,   "\t## TAC ARG\n");
+    if(tac->op2){
+        fprintf(fout,       "\tmovl	_%s(%%rip), %%eax\n"
+	                        "\tmovl	_%s(%%rip), %%edx\n"
+	                        "\tcltq\n"
+	                        "\tleaq	0(,%%rax,4), %%rcx\n"
+	                        "\tleaq	_%s(%%rip), %%rax\n"
+	                        "\tmovl	%%edx, (%%rcx,%%rax)\n"
+	                        "\n", tac->op2->text, tac->op1->text, tac->res->text);
+    }
+	else{
+	    fprintf(fout,       "\tmovl	_%s(%%rip), %%eax\n"
+	                        "\tmovl	%%eax, _%s(%%rip)\n"
+	                        "\n", tac->op1->text, tac->res->text);
+	}
 }
 
 void makeAdd(FILE* fout, TAC* tac){
@@ -208,9 +279,10 @@ void makeEq(FILE* fout, TAC* tac){
     fprintf(fout,   "\t## TAC EQ\n");
     fprintf(fout,       "\tmovl	_%s(%%rip), %%edx\n"
 	                    "\tmovl	_%s(%%rip), %%eax\n"
-	                    "\tcmpl	%%eax, %%edx\n"
+	                    "\tcmpl	%%edx, %%eax\n"
 	                    "\tsete	%%al\n"
-	                    "\tmovzbl	%%al, _%s(%%rip)\n"
+	                    "\tmovzbl	%%al, %%eax\n"
+	                    "\tmovl	%%eax, _%s(%%rip)\n"
 	                    "\n", tac->op1->text, tac->op2->text, tac->res->text);
 }
 
@@ -218,9 +290,10 @@ void makeDif(FILE* fout, TAC* tac){
     fprintf(fout,   "\t## TAC DIF\n");
     fprintf(fout,       "\tmovl	_%s(%%rip), %%edx\n"
 	                    "\tmovl	_%s(%%rip), %%eax\n"
-	                    "\tcmpl	%%eax, %%edx\n"
+	                    "\tcmpl	%%edx, %%eax\n"
 	                    "\tsetne	%%al\n"
-	                    "\tmovzbl	%%al, _%s(%%rip)\n"
+	                    "\tmovzbl	%%al, %%eax\n"
+	                    "\tmovl	%%eax, _%s(%%rip)\n"
 	                    "\n", tac->op1->text, tac->op2->text, tac->res->text);
 }
 
@@ -228,9 +301,10 @@ void makeGrt(FILE* fout, TAC* tac){
     fprintf(fout,   "\t## TAC GRT\n");
     fprintf(fout,       "\tmovl	_%s(%%rip), %%edx\n"
 	                    "\tmovl	_%s(%%rip), %%eax\n"
-	                    "\tcmpl	%%eax, %%edx\n"
+	                    "\tcmpl	%%edx, %%eax\n"
 	                    "\tsetg	%%al\n"
-	                    "\tmovzbl	%%al, _%s(%%rip)\n"
+	                    "\tmovzbl	%%al, %%eax\n"
+	                    "\tmovl	%%eax, _%s(%%rip)\n"
 	                    "\n", tac->op1->text, tac->op2->text, tac->res->text);
 }
 
@@ -238,9 +312,10 @@ void makeGeq(FILE* fout, TAC* tac){
     fprintf(fout,   "\t## TAC GEQ\n");
     fprintf(fout,       "\tmovl	_%s(%%rip), %%edx\n"
 	                    "\tmovl	_%s(%%rip), %%eax\n"
-	                    "\tcmpl	%%eax, %%edx\n"
+	                    "\tcmpl	%%edx, %%eax\n"
 	                    "\tsetge	%%al\n"
-	                    "\tmovzbl	%%al, _%s(%%rip)\n"
+	                    "\tmovzbl	%%al, %%eax\n"
+	                    "\tmovl	%%eax, _%s(%%rip)\n"
 	                    "\n", tac->op1->text, tac->op2->text, tac->res->text);
 }
 
@@ -248,9 +323,10 @@ void makeLes(FILE* fout, TAC* tac){
     fprintf(fout,   "\t## TAC LES\n");
     fprintf(fout,       "\tmovl	_%s(%%rip), %%edx\n"
 	                    "\tmovl	_%s(%%rip), %%eax\n"
-	                    "\tcmpl	%%eax, %%edx\n"
+	                    "\tcmpl	%%edx, %%eax\n"
 	                    "\tsetl	%%al\n"
-	                    "\tmovzbl	%%al, _%s(%%rip)\n"
+	                    "\tmovzbl	%%al, %%eax\n"
+	                    "\tmovl	%%eax, _%s(%%rip)\n"
 	                    "\n", tac->op1->text, tac->op2->text, tac->res->text);
 }
 
@@ -258,9 +334,10 @@ void makeLeq(FILE* fout, TAC* tac){
     fprintf(fout,   "\t## TAC LEQ\n");
     fprintf(fout,       "\tmovl	_%s(%%rip), %%edx\n"
 	                    "\tmovl	_%s(%%rip), %%eax\n"
-	                    "\tcmpl	%%eax, %%edx\n"
+	                    "\tcmpl	%%edx, %%eax\n"
 	                    "\tsetle	%%al\n"
-	                    "\tmovzbl	%%al, _%s(%%rip)\n"
+	                    "\tmovzbl	%%al, %%eax\n"
+	                    "\tmovl	%%eax, _%s(%%rip)\n"
 	                    "\n", tac->op1->text, tac->op2->text, tac->res->text);
 }
 
@@ -284,8 +361,11 @@ void makeOr(FILE* fout, TAC* tac){
 
 void makeJz(FILE* fout, TAC* tac){
     fprintf(fout,   "\t## TAC JZ\n");
-    fprintf(fout,       "\tjz   .%s\n"
-	                    "\n", tac->res->text);
+    fprintf(fout,       "\tmovl    $0, %%edx\n"
+	                    "\tmovl    _%s(%%rip), %%eax\n"
+	                    "\tcmpl    %%eax, %%edx\n"
+	                    "\tjz   .%s\n"
+	                    "\n", tac->op1->text, tac->res->text);
 }
 
 void makeJmp(FILE* fout, TAC* tac){
@@ -302,6 +382,27 @@ void makeLab(FILE* fout, TAC* tac){
 
 void makeReturn(FILE* fout, TAC* tac){
     fprintf(fout,   "\t## TAC RETURN\n");
-    fprintf(fout,       "\tmovl	$0, %%eax\n"
-	                    "\n");
+    fprintf(fout,       "\tmovl	_%s(%%rip), %%eax\n"
+	                    "\n", tac->res->text);
 }
+
+void makeArrayAcc(FILE* fout, TAC* tac){
+    fprintf(fout,   "\t## TAC ARRAY ACC\n");
+    fprintf(fout,       "\tmovl	_%s(%%rip), %%eax\n"
+	                    "\tcltq\n"
+	                    "\tleaq	0(,%%rax,4), %%rdx\n"
+	                    "\tleaq	_%s(%%rip), %%rax\n"
+	                    "\tmovl	(%%rdx,%%rax), %%eax\n"
+	                    "\tmovl	%%eax, _%s(%%rip)\n"
+	                    "\n", tac->op2->text, tac->op1->text, tac->res->text);
+}
+
+void makeFunctionCall(FILE* fout, TAC* tac){
+    fprintf(fout,   "\t## TAC FUN CALL\n");
+    fprintf(fout,       "\tcall\t%s\n"
+                    	"\taddq	$80, %%rsp\n"
+	                    "\tmovl	%%eax, _%s(%%rip)\n"
+	                    "\n", tac->op1->text, tac->res->text);
+}
+
+
