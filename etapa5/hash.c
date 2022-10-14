@@ -81,16 +81,13 @@ int hash_check_undeclared(void)
 	return undeclaredCount;
 }
 
-HASH_NODE* makeTemp(int datatype)
+HASH_NODE* makeTemp(void)
 {
 	static int serial = 0;
 	char buffer[256] = "";
-	HASH_NODE* newtemp;
 	
 	sprintf(buffer, "temp%d", serial++);
-	newtemp = hashInsert(buffer,SYMBOL_VARIABLE);
-	newtemp->datatype = datatype;
-	return newtemp;
+	return hashInsert(buffer,SYMBOL_VARIABLE);
 }
 
 HASH_NODE* makeLabel(void)
@@ -101,7 +98,5 @@ HASH_NODE* makeLabel(void)
 	sprintf(buffer, "label%d", serial++);
 	return hashInsert(buffer,SYMBOL_LABEL);
 }
-
-
 
 

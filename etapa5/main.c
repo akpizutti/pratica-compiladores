@@ -22,17 +22,27 @@ extern FILE *yyin;
 
 
 int main(int argc, char** argv) {
+	if (argc < 2)
+	{
+		printf("Argumentos insuficientes.\n");
+		exit(1);
+	}
 	if (0 == (yyin = fopen(argv[1],"r"))){
 		printf("Cannot open file %s... \n",argv[1]);
-		exit(1);
+		exit(2);
 	}
 	else{
 		if(!yyparse()){
             printf("sucesso\n");
-            FILE* saida = fopen(argv[2],"w");
-            descompila(saida,astRoot);
+            if(argc >= 3){
+		        FILE* saida = fopen(argv[2],"w");
+		        descompila(saida,astRoot);
+	        }
+	        else {
+	        	printf("Arquivo de saída não especificado. Programa descompilado não foi gerado.\n");
+	        }
+			//hashPrint();
 			verifySemantic(astRoot);
-
 			if(get_semantic_errors() > 0){
 				printf("erro semantico\n");
 				exit(4);
@@ -40,13 +50,12 @@ int main(int argc, char** argv) {
 			else {
 				printf("eh pra printar a tac agora\n");
 				astRoot2 = astRoot;
-				tacPrintBack(doublyLink(generateCode(astRoot)));
-				hashPrint();
+				tacPrintBack(generateCode(astRoot));
 				exit(0);
 				}
 		}
 		else{
-			exit(2);
+			exit(3);
 		}
 	}
 	return 0;

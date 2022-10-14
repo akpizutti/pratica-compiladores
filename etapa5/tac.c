@@ -91,7 +91,7 @@ TAC* tacJoin(TAC* l1, TAC* l2)
 TAC* makebinop(int type, TAC* code0, TAC* code1)
 {
 	return tacJoin(tacJoin(code0,code1), 
-			tacCreate(type,makeTemp(code0?code0->res->datatype:0),code0?code0->res:0,code1?code1->res:0) ); 
+			tacCreate(type,makeTemp(),code0?code0->res:0,code1?code1->res:0) ); 
 }
 
 
@@ -226,26 +226,12 @@ TAC* makeFunCall(TAC* code0, AST* node)
 
 	}
 	
-	out = tacJoin(out,tacCreate(TAC_FUNCALL,makeTemp(astFundec->symbol->datatype),node->symbol,0));
+	out = tacJoin(out,tacCreate(TAC_FUNCALL,makeTemp(),node->symbol,0));
 	return out;
 	
 	
 
 }
-
-TAC* doublyLink(TAC* tac)
-{
-	TAC* point = tac;
-	
-	while(point->prev)
-	{
-		point->prev->next = point;
-		point = point->prev;
-	}
-	
-	return tac;
-}
-
 
 TAC* generateCode(AST* node)
 {
@@ -349,7 +335,7 @@ TAC* generateCode(AST* node)
 			break;
 		
 		case AST_ARRAY_ACC:
-			result = tacJoin(code[0],tacCreate(TAC_ARRAY_ACC,makeTemp(node->symbol->datatype),node->symbol,code[0]->res));
+			result = tacJoin(code[0],tacCreate(TAC_ARRAY_ACC,makeTemp(),node->symbol,code[0]->res));
 			break;
 		/*
 		case AST_ARGUMENT:

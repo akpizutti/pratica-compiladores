@@ -457,7 +457,7 @@ int convert_ast_type(AST* node)
 void verifySemantic(AST* node)
 {
     check_and_set_declarations(node);
-    //hashPrint();
+    hashPrint();
     check_undeclared();
     check_operands(node);
     //fprintf(stderr, "Começando checagem de array!\n");
