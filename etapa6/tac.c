@@ -58,7 +58,7 @@ void tacPrint(TAC* tac)
 		default:
 			fprintf(stderr,"UNKNOWN");
 			break;
-		
+		return;
 	}
 	fprintf(stderr,", %s",(tac->res)?tac->res->text:"0");
 	fprintf(stderr,", %s",(tac->op1)?tac->op1->text:"0");
@@ -77,6 +77,7 @@ void tacPrintBack(TAC *tac)
 		tacPrintBack(tac->prev);
 		tacPrint(tac);
 	}
+	return;
 }
 
 TAC* tacJoin(TAC* l1, TAC* l2)
@@ -376,6 +377,7 @@ TAC* generateCode(AST* node)
 			result = tacJoin(code[0], tacJoin(code[1],tacJoin(code[2],code[3]))); 
 			break;
 	}
+	return result;
 }
 
 

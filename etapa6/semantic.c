@@ -207,7 +207,7 @@ int is_bool(AST* son)
 
 int is_leaf(AST* node)
 {
-	return (!node->son[0] && !node->son[1] && !node->son[2] && !node->son[3] && !node->son[4] ); 
+	return (!node->son[0] && !node->son[1] && !node->son[2] && !node->son[3]); 
 }
 
 void check_operands(AST* node)
