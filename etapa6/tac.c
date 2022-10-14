@@ -194,6 +194,7 @@ TAC* makeArrayDec(AST* node)
 	{	
 		sprintf(index,"%d",i);
 		//out = tacJoin(out,tacCreate(TAC_SET_ARR,node->symbol,point->son[0]->symbol,0));
+		out = tacCreate(TAC_DECLARATION_ARR, node->symbol,0,0);
 		out = tacJoin(out,tacCreate(TAC_SET_ARR,node->symbol,point->son[0]->symbol,hashInsert(index,SYMBOL_LIT_INT)));
 		point = point->son[1];
 		i++;

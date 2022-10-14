@@ -41,6 +41,7 @@
 #define TAC_COPY 30
 #define TAC_SET_ARR 31
 #define TAC_DECLARATION 32
+#define TAC_DECLARATION_ARR 33
 
 extern AST* astRoot2;
 
